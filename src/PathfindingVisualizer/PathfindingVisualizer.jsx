@@ -34,6 +34,9 @@ export default class PathfindingVisualizer extends Component {
       draggedNodeCol: START_NODE_COL,
       draggedNodeRowF: START_NODE_ROW,
       draggedNodeColF: START_NODE_COL,
+      middleNodeRow: null,
+      middleNodeCol: null,
+      addingMiddleNode: false,
     };
   }
 
@@ -50,35 +53,50 @@ export default class PathfindingVisualizer extends Component {
     const { grid } = this.state;
     const node = grid[row][col];
 
-    if (node.isStart || node.isFinish) {
-      const currentTime = new Date().getTime();
-      const { prevMouseDownTime } = this.state;
+  // Check if the "Add Middle Target" button is clicked
+  if (this.state.addingMiddleNode) {
+    const newGrid = grid.slice();
+    const middleNode = newGrid[row][col];
+    middleNode.isMiddle = true;
 
-      if (node.isStart && prevMouseDownTime && currentTime - prevMouseDownTime < 300) {
-        // Double mouse press detected, start node dragging
-        this.setState({
-          mouseIsPressed: true,
-          startNodeDragged: true,
-          draggedNodeRow: row,
-          draggedNodeCol: col,
-        });
-        
-      } else if (node.isFinish && prevMouseDownTime && currentTime - prevMouseDownTime < 300) {
-        // Double mouse press detected, start node dragging
-        this.setState({
-          mouseIsPressed: true,
-          finishNodeDragged: true,
-          draggedNodeRowF: row,
-          draggedNodeColF: col,
-        });
-      }
+    this.setState({
+      grid: newGrid,
+      middleNodeRow: row,
+      middleNodeCol: col,
+      addingMiddleNode: false, // Reset the flag after adding the middle node
+    });
+  } 
 
-      this.setState({ prevMouseDownTime: currentTime });
-    } else {
-      const newGrid = getNewGridWithWallToggled(grid, row, col);
-      this.setState({ grid: newGrid, mouseIsPressed: true });
+  else if (node.isStart || node.isFinish) {
+    const currentTime = new Date().getTime();
+    const { prevMouseDownTime } = this.state;
+
+    if (node.isStart && prevMouseDownTime && currentTime - prevMouseDownTime < 300) {
+      // Double mouse press detected, start node dragging
+      this.setState({
+        mouseIsPressed: true,
+        startNodeDragged: true,
+        draggedNodeRow: row,
+        draggedNodeCol: col,
+      });
+      
+    } else if (node.isFinish && prevMouseDownTime && currentTime - prevMouseDownTime < 300) {
+      // Double mouse press detected, start node dragging
+      this.setState({
+        mouseIsPressed: true,
+        finishNodeDragged: true,
+        draggedNodeRowF: row,
+        draggedNodeColF: col,
+      });
     }
+
+    this.setState({ prevMouseDownTime: currentTime });
+  } else {
+    const newGrid = getNewGridWithWallToggled(grid, row, col);
+    this.setState({ grid: newGrid, mouseIsPressed: true });
   }
+  
+}
 
   /*Handles the mouse enter event on a node. It takes the row and col as parameters, representing the row and column indices of the node.
   If the mouse is not pressed (i.e., mouseIsPressed is false), the method returns early and does not perform any action.
@@ -206,19 +224,79 @@ export default class PathfindingVisualizer extends Component {
   Then, it calls the dijkstra function, passing the grid, start node, and finish node to get the visited nodes in order.
   It also calls the getNodesInShortestPathOrder function, passing the finish node, to get the nodes in the shortest path order.
   Finally, it calls animateDijkstra with the visited nodes and nodes in the shortest path to start the animation.*/
-  visualizeDijkstra() {
-    const { grid, startNodeRow, startNodeCol, finishNodeRow, finishNodeCol } = this.state;
-    const startNode = grid[startNodeRow][startNodeCol];
-    const finishNode = grid[finishNodeRow][finishNodeCol];
+  // Helper function that returns a Promise that resolves after a specified time (in milliseconds)
+
+
+visualizeDijkstra() {
+  const { grid, startNodeRow, startNodeCol, middleNodeRow, middleNodeCol, finishNodeRow, finishNodeCol } = this.state;
+  const startNode = grid[startNodeRow][startNodeCol];
+  const finishNode = grid[finishNodeRow][finishNodeCol];
+
+  if (middleNodeRow !== null && middleNodeCol !== null) {
+    const middleNode = grid[middleNodeRow][middleNodeCol];
+
+    // Find path from start node to middle node
+    const visitedNodesToMiddle = dijkstra(grid, startNode, middleNode);
+    const nodesInShortestPathToMiddle = getNodesInShortestPathOrder(middleNode);
+
+    // Animate the path from start node to middle node
+    
+   
+    resetNodes(grid);
+
+    // Find path from middle node to finish node
+    const visitedNodesToFinish = dijkstra(grid, middleNode, finishNode);
+    const nodesInShortestPathToFinish = getNodesInShortestPathOrder(finishNode);
+
+    // Combine both paths
+    const visitedNodesInOrder = this.combinePaths(visitedNodesToMiddle, visitedNodesToFinish);
+    const nodesInShortestPathOrder = nodesInShortestPathToMiddle.concat(nodesInShortestPathToFinish.slice(1));
+
+    // Animate the path from middle node to finish node
+    this.animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder);
+  } else {
+    // Find path from start node to finish node
     const visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
+
+    // Animate the entire path from start node to finish node
     this.animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder);
+  }
+}
+
+  
+  
+  
+
+  combinePaths(path1, path2) {
+    const combinedPath = [...path1];
+    // Find the index where the paths have the common node (the middle node)
+    const commonNodeIndex = path2.findIndex(node => combinedPath.includes(node));
+  
+    // Remove the common node to avoid duplication
+    if (commonNodeIndex !== -1) {
+      path2.splice(commonNodeIndex, 1);
+    }
+  
+    // Combine the two paths
+    combinedPath.push(...path2);
+  
+    return combinedPath;
   }
 
   /////////////////////
   clearBoard() {
     window.location.reload();
   }
+
+  addMiddleNode(row, col) {
+    this.setState({
+      middleNodeRow: row,
+      middleNodeCol: col,
+      addingMiddleNode: true,
+    });
+  }
+  
 
   /*Responsible for rendering the JSX that represents the component's UI.*/
   render() {
@@ -236,10 +314,14 @@ export default class PathfindingVisualizer extends Component {
         <button onClick={() => this.visualizeDijkstra()}>
           Visualize Dijkstra's Algorithm
         </button>
+        <button onClick={() => this.addMiddleNode()}>
+          Add Middle Target
+        </button>
         <button onClick={() => this.clearBoard()}>
           Clear Board
         </button>
         <div className="grid">
+          
 
           {/* This line maps over the grid array to render the rows of nodes. 
           For each row, a div element is rendered with the key set to rowIdx. 
@@ -261,7 +343,9 @@ export default class PathfindingVisualizer extends Component {
                       onMouseDown={(row, col) => this.handleMouseDown(row, col)}
                       onMouseEnter={(row, col) => this.handleMouseEnter(row, col)}
                       onMouseUp={() => this.handleMouseUp()}
-                      row={row}></Node>
+                      row={row}
+                      isMiddle={row === this.state.middleNodeRow && col === this.state.middleNodeCol}> 
+                      </Node>
                   );
                 })}
               </div>
@@ -294,6 +378,7 @@ const createNode = (col, row) => {
     row,
     isStart: row === START_NODE_ROW && col === START_NODE_COL,
     isFinish: row === FINISH_NODE_ROW && col === FINISH_NODE_COL,
+    isMiddle: false,
     distance: Infinity,
     isVisited: false,
     isWall: false,
@@ -314,4 +399,15 @@ const getNewGridWithWallToggled = (grid, row, col) => {
   newGrid[row][col] = newNode;
   return newGrid;
 };
+
+function resetNodes(grid) {
+  for (const row of grid) {
+    for (const node of row) {
+      node.distance = Infinity;
+      node.isVisited = false;
+      node.previousNode = null;
+    }
+  }
+}
+
 

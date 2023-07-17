@@ -13,6 +13,11 @@
   background-color: green;
 }
 
+.node-middle {
+  background-color: orange;
+}
+
+
 .node-visited {
   animation-name: visitedAnimation;
   animation-duration: 1.5s;

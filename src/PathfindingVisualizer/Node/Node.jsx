@@ -15,6 +15,7 @@ export default class Node extends Component {
       isFinish,
       isStart,
       isWall,
+      isMiddle,
       onMouseDown,
       onMouseEnter,
       onMouseUp,
@@ -30,6 +31,8 @@ export default class Node extends Component {
       ? 'node-start'
       : isWall
       ? 'node-wall'
+      : isMiddle // Add this condition for the middle node
+      ? 'node-middle'
       : '';
 
     return (
@@ -39,6 +42,7 @@ export default class Node extends Component {
         onMouseDown={() => onMouseDown(row, col)}
         onMouseEnter={() => onMouseEnter(row, col)}
         onMouseUp={() => onMouseUp()}
+        
         ></div>
     );
   }
