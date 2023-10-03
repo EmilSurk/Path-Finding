@@ -1,3 +1,135 @@
+
+/* Style for the button container */
+.button-container {
+  display: flex;
+  flex-direction: column; /* Stack the items vertically */
+  align-items: center;
+
+  text-align: center; /* Center-align the button and description text */
+  position: relative;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap; /* Wrap buttons to the next line if they don't fit horizontally */
+  justify-content: center; /* Center the buttons horizontally */
+  align-items: center; /* Center the buttons vertically */
+  padding: 20px;
+  background-color: #f3f3f3; /* Slight gray background color */
+
+}
+
+/* This will apply styles when the window width is less than 1000px */
+@media only screen and (max-width: 999px) {
+  .container {
+    flex-direction: row; /* Stack content vertically */
+  }
+
+  button {
+    width: 100%; /* Make buttons take full width */
+  }
+}
+
+
+
+/* Style for the description */
+.description {
+  display: none; /* Initially hidden */
+  position: absolute;
+  top: 80px; /* Adjust the value as needed to position the description */
+  left: 50%; /* Center the description horizontally */
+  width: 200px;
+  transform: translateX(-50%); /* Center the description horizontally */
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  text-align: center;
+  font-size: 15px;
+  border-radius: 10px; /* Rounded corners to create a bubble shape */
+}
+
+/* Create a triangular shape to resemble a speech bubble */
+.description::before {
+  content: "";
+  position: absolute;
+  top: -20px; /* Adjust the value to position the triangle above the bubble */
+  left: 50%;
+  border-width: 10px; /* Adjust the size of the triangle */
+  border-style: solid;
+  border-color: transparent transparent rgba(0, 0, 0, 0.8) transparent;
+  transform: translateX(-50%);
+}
+
+/* Show the description when hovering over the button */
+.button-container:hover .description {
+  display: block;
+}
+
+button {
+  width: 180px; /* Set a fixed width for all buttons */
+  height: 62px; /* Set a fixed height for all buttons */
+  margin: 5px;
+  padding: 10px 20px;
+  background-color: #3870ac;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Add a smooth transition */
+
+  /* Text styles */
+  font-size: 13px; /* Set the font size */
+  font-weight: bold; /* Set the font weight (e.g., bold) */
+  text-transform: uppercase; /* Convert text to uppercase */
+}
+
+/* Hover effect for the buttons */
+button:hover {
+  background-color: #295c96; /* Slight gray background color */
+}
+
+/* Style for the separator */
+.separator {
+  width: 5px; /* Adjust the width of the separator line */
+  height: 50px; /* Set the height to match the buttons */
+  margin: 0 10px; /* Adjust the horizontal margin as needed */
+  display: inline-block; /* Display the separator as an inline-block element */
+  vertical-align: middle; /* Vertically center the separator */
+  margin-left: 30px;
+  margin-right: 30px;
+  border-left: 3px dashed rgb(120, 116, 116); /* Use border to create a dashed line */
+}
+
 .grid {
-  margin: 100px 0 0;
+  display: grid;
+  grid-gap: 1px;
+  margin-top: 150px;
+  justify-content: center; /* Center the grid horizontally */
+  transform: scale(1); /* Adjust the scale factor as needed */
+}
+
+
+/* Style for grid cells */
+.grid > div {
+  overflow: hidden; /* Hide overflowing content */
+  white-space: nowrap; /* Prevent text from wrapping */
+  text-overflow: ellipsis; /* Show ellipsis (...) for overflowed text */
+}
+
+/* Style for the visualization buttons */
+.visualization-button {
+  
+  background-color: #518491; /* Set a different color for visualization buttons */
+}
+
+.visualization-button:hover {
+  background-color: #416875;
+}
+
+.clear-container {
+  background-color: #be391b;
+}
+
+.middle-container {
+  background-color: orange;
+  margin-right: 10px;
 }

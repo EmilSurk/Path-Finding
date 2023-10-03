@@ -13,7 +13,7 @@ export default class Node extends Component {
       onMouseEnter,
       onMouseUp,
       row,
-      middleNodeCounts, // Add middleNodeCount as a prop
+      middleNodeCounts, 
     } = this.props;
 
     const extraClassName = isFinish
@@ -34,7 +34,6 @@ export default class Node extends Component {
         onMouseEnter={() => onMouseEnter(row, col)}
         onMouseUp={() => onMouseUp()}
       >
-        {/* Display the middle number only when isMiddle is true */}
         {isMiddle && (
           <span className="middle-number">
           {middleNodeCounts[`${row}-${col}`]}

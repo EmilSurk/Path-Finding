@@ -1,12 +1,10 @@
 import React, {Component} from 'react';
-
-/*This line imports the Node component from the './Node/Node' file.*/
 import Node from './Node/Node';
-
-/*This line imports the dijkstra function and getNodesInShortestPathOrder function from the '../algorithms/dijkstra' file.
- These functions are used in the visualizeDijkstra method to perform the Dijkstra's algorithm and retrieve the shortest path.*/
-import {dijkstra, getNodesInShortestPathOrder} from '../algorithms/dijkstra';
-
+import { dijkstra, getNodesInShortestPathOrder } from '../algorithms/dijkstra';
+import { floydWarshall } from '../algorithms/floydWarshall';
+import { astar } from '../algorithms/astar';
+import { bfs } from '../algorithms/bfs';
+import { dfs } from '../algorithms/dfs';
 import './PathfindingVisualizer.css';
 
 const START_NODE_ROW = 10;
@@ -14,10 +12,9 @@ const START_NODE_COL = 15;
 const FINISH_NODE_ROW = 10;
 const FINISH_NODE_COL = 35;
 
-/*The PathfindingVisualizer component inherits functionality from Component and can implement its own methods and properties.*/
+
 export default class PathfindingVisualizer extends Component {
 
-  /*Called when an instance of the component is created. Within the constructor, the initial state of the component is set.*/
   constructor() {
     super();
     this.state = {
@@ -43,109 +40,94 @@ export default class PathfindingVisualizer extends Component {
     };
   }
 
-  /* This is a lifecycle method of the PathfindingVisualizer component that is automatically called after the component has been rendered to the DOM.
-   In this method, the getInitialGrid function is called to initialize the grid, and the grid is set in the component's state using setState.*/
   componentDidMount() {
     const grid = getInitialGrid();
     this.setState({grid});
   }
 
-  /*Handles the mouse down event on a node. It takes the row and col as parameters, representing the row and column indices of the node.
-   It toggles the wall state of the node in the grid and sets the updated grid and mouseIsPressed state in the component using setState.*/
   handleMouseDown(row, col) {
     const { grid, addingMiddleNode } = this.state;
     const node = grid[row][col];
 
 
-    if (!node.isStart && !node.isFinish) {
-      if (!addingMiddleNode) {
-        // Handle wall logic here
+    if (!node.isStart && !node.isFinish ) {
+      if (!addingMiddleNode && !node.isMiddle) {
         const newGrid = getNewGridWithWallToggled(grid, row, col);
         this.setState({ grid: newGrid, mouseIsPressed: true });
-      }
 
-      // Check if the "Add Middle Target" button is clicked
-      else if (addingMiddleNode) {
-        // Toggle the isMiddle property of the clicked node
-        const newGrid = grid.slice();
-        const targetNode = newGrid[row][col];
-        targetNode.isMiddle = !targetNode.isMiddle;
+      } else if (addingMiddleNode) {
 
-        // Add or remove the clicked node from the targetNodes array
-        const targetNodes = this.state.targetNodes.slice();
-        const targetIndex = targetNodes.findIndex(
-          (targetNode) => targetNode.row === row && targetNode.col === col
-        );
+        if (!node.isWall && !node.isMiddle) {
+          const newGrid = grid.slice();
+          const targetNode = newGrid[row][col];
+          targetNode.isMiddle = !targetNode.isMiddle;
+          const targetNodes = this.state.targetNodes.slice();
+          const targetIndex = targetNodes.findIndex(
+            (targetNode) => targetNode.row === row && targetNode.col === col
+          );
 
-        if (targetIndex !== -1) {
-          targetNodes.splice(targetIndex, 1); // Remove node from targetNodes if it already exists
-        } else {
-          targetNodes.push({ row, col }); // Add node to targetNodes if it doesn't exist
+          if (targetIndex !== -1) {
+            targetNodes.splice(targetIndex, 1); 
+          } else {
+            targetNodes.push({ row, col }); 
+          }
+
+          const middleNodeCount = this.state.middleNodeCount + 1;
+          const middleNodeKey = `${row}-${col}`;
+          const newMiddleNode = {
+            row: row,
+            col: col,
+            isMiddle: true,
+            id: middleNodeCount, 
+          };
+
+          const newMiddleNodeCounts = {
+            ...this.state.middleNodeCounts,
+            [middleNodeKey]: middleNodeCount,
+          };
+          newGrid[row][col] = newMiddleNode; 
+
+
+          this.setState({
+            grid: newGrid,
+            targetNodes: targetNodes,
+            middleNodeRow: row,
+            middleNodeCol: col,
+            middleNodeCount: middleNodeCount,
+            addingMiddleNode: false,
+            middleNodeCounts: newMiddleNodeCounts, 
+          });
         }
-
-        // Increment middleNodeCount
-        const middleNodeCount = this.state.middleNodeCount + 1;
-        // Generate a unique identifier for the middle node using row and col
-        const middleNodeKey = `${row}-${col}`;
-        // Create a new object representing the middle node with unique identifier
-        const newMiddleNode = {
-          row: row,
-          col: col,
-          isMiddle: true,
-          id: middleNodeCount, // Assigning the unique identifier
-        };
-        // Create a new object representing the middleNodeCounts with updated data
-        const newMiddleNodeCounts = {
-          ...this.state.middleNodeCounts,
-          [middleNodeKey]: middleNodeCount,
-        };
-        newGrid[row][col] = newMiddleNode; // Replace with the new middle node
-
-
-        this.setState({
-          grid: newGrid,
-          targetNodes: targetNodes,
-          middleNodeRow: row,
-          middleNodeCol: col,
-          middleNodeCount: middleNodeCount,
-          addingMiddleNode: false,
-          middleNodeCounts: newMiddleNodeCounts, // Update middleNodeCounts
-        });
       }
     } 
     else if (node.isStart || node.isFinish) {
       const currentTime = new Date().getTime();
       const { prevMouseDownTime } = this.state;
 
-    if (node.isStart && prevMouseDownTime && currentTime - prevMouseDownTime < 300) {
-      // Double mouse press detected, start node dragging
-      this.setState({
-        mouseIsPressed: true,
-        startNodeDragged: true,
-        draggedNodeRow: row,
-        draggedNodeCol: col,
-      });
-      
-    } else if (node.isFinish && prevMouseDownTime && currentTime - prevMouseDownTime < 300) {
-      // Double mouse press detected, start node dragging
-      this.setState({
-        mouseIsPressed: true,
-        finishNodeDragged: true,
-        draggedNodeRowF: row,
-        draggedNodeColF: col,
-      });
-    }
+      if (node.isStart && prevMouseDownTime && currentTime - prevMouseDownTime < 300) {
+        this.setState({
+          mouseIsPressed: true,
+          startNodeDragged: true,
+          draggedNodeRow: row,
+          draggedNodeCol: col,
+        });
+        
+      } else if (node.isFinish && prevMouseDownTime && currentTime - prevMouseDownTime < 300) {
+        this.setState({
+          mouseIsPressed: true,
+          finishNodeDragged: true,
+          draggedNodeRowF: row,
+          draggedNodeColF: col,
+        });
+      }
 
-    this.setState({ prevMouseDownTime: currentTime });
+      this.setState({ prevMouseDownTime: currentTime });
   } else {
     const newGrid = getNewGridWithWallToggled(grid, row, col);
     this.setState({ grid: newGrid, mouseIsPressed: true });
   }
 }
 
-  /*Handles the mouse enter event on a node. It takes the row and col as parameters, representing the row and column indices of the node.
-  If the mouse is not pressed (i.e., mouseIsPressed is false), the method returns early and does not perform any action.
-  If the mouse is pressed, it toggles the wall state of the node in the grid and sets the updated grid state in the component using setState.*/
   handleMouseEnter(row, col) {
     const {
       grid,
@@ -196,9 +178,6 @@ export default class PathfindingVisualizer extends Component {
     }
   }
   
-  
-
-  /*Handles the mouse up event. It sets the mouseIsPressed state to false, indicating that the mouse button is no longer pressed.*/
   handleMouseUp() {
     const { startNodeDragged, draggedNodeRow, draggedNodeCol, finishNodeDragged, draggedNodeRowF, draggedNodeColF } = this.state;
   
@@ -227,33 +206,24 @@ export default class PathfindingVisualizer extends Component {
     }
   }
 
-  /*Animating the visualization of the Dijkstra's algorithm. 
-  It takes visitedNodesInOrder and nodesInShortestPathOrder as parameters. 
-  It iterates over the visitedNodesInOrder array and updates the CSS class of each visited node to visualize the algorithm's progress. 
-  After the iteration is complete, it calls animateShortestPath with nodesInShortestPathOrder to animate the visualization of the shortest path.*/
-  animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder) {
 
-    for (let i = 0; i <= visitedNodesInOrder.length; i++) {
 
-      if (i === visitedNodesInOrder.length) {
-        setTimeout(() => {
-          this.animateShortestPath(nodesInShortestPathOrder);
-        }, 10 * i);
-        return;
+
+  // DIJKSTRA ALGORITHM
+
+  async animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder) {
+    for (let i = 0; i < visitedNodesInOrder.length; i++) {
+      const node = visitedNodesInOrder[i];
+  
+      if (!node.isStart && !node.isFinish && !node.isMiddle) {
+        document.getElementById(`node-${node.row}-${node.col}`).className =
+          'node node-visited';
       }
-      setTimeout(() => {
-        const node = visitedNodesInOrder[i];
-        if (!node.isStart && !node.isFinish && !node.isMiddle) {
-          document.getElementById(`node-${node.row}-${node.col}`).className =
-            'node node-visited';
-        }
-      }, 10 * i);
+  
+      await new Promise((resolve) => setTimeout(resolve, 10)); 
     }
   }
 
-  /*This method is responsible for animating the visualization of the shortest path found by Dijkstra's algorithm.
-   It takes nodesInShortestPathOrder as a parameter.
-   It iterates over the nodesInShortestPathOrder array and updates the CSS class of each node to visualize it as part of the shortest path.*/
   animateShortestPath(nodesInShortestPathOrder) {
 
     for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
@@ -267,57 +237,409 @@ export default class PathfindingVisualizer extends Component {
     }
   }
 
-  /*This method is called when the "Visualize Dijkstra's Algorithm" button is clicked.
-  It retrieves the grid from the component's state.
-  It gets the start and finish nodes from the grid based on the defined row and column indices.
-  Then, it calls the dijkstra function, passing the grid, start node, and finish node to get the visited nodes in order.
-  It also calls the getNodesInShortestPathOrder function, passing the finish node, to get the nodes in the shortest path order.
-  Finally, it calls animateDijkstra with the visited nodes and nodes in the shortest path to start the animation.*/
-  // Helper function that returns a Promise that resolves after a specified time (in milliseconds)
-
-
-  visualizeDijkstra() {
-  const { grid, startNodeRow, startNodeCol, finishNodeRow, finishNodeCol, targetNodes } = this.state;
-  const startNode = grid[startNodeRow][startNodeCol];
-  const finishNode = grid[finishNodeRow][finishNodeCol];
-
-  let allNodesInShortestPathOrder = [];
-
-  // Find path from start node to each target node
-  let prevNode = startNode;
+  async visualizeDijkstra() {
+    const { grid, startNodeRow, startNodeCol, finishNodeRow, finishNodeCol, targetNodes } = this.state;
+    const startNode = grid[startNodeRow][startNodeCol];
+    const finishNode = grid[finishNodeRow][finishNodeCol];
+    let allNodesInShortestPathOrder = [];
+    let prevNode = startNode;
   
-  for (const targetNodeObj of targetNodes) {
-    const targetNode = grid[targetNodeObj.row][targetNodeObj.col];
-    resetNodes(grid); // Reset nodes before running Dijkstra's algorithm
-    const visitedNodesToTarget = dijkstra(grid, prevNode, targetNode);
-    const nodesInShortestPathToTarget = getNodesInShortestPathOrder(targetNode);
-    resetNodes(grid);
-    // Combine all the paths from start node to each target node
-    allNodesInShortestPathOrder = allNodesInShortestPathOrder.concat(nodesInShortestPathToTarget.slice(1));
+    for (const targetNodeObj of targetNodes) {
+      const targetNode = grid[targetNodeObj.row][targetNodeObj.col];
+      resetNodes(grid); 
+      const visitedNodesToTarget = dijkstra(grid, prevNode, targetNode);
+      const nodesInShortestPathToTarget = getNodesInShortestPathOrder(targetNode);
+      resetNodes(grid);
+      allNodesInShortestPathOrder = allNodesInShortestPathOrder.concat(nodesInShortestPathToTarget.slice(1));
+      prevNode = targetNode;
+      await this.animateDijkstra(visitedNodesToTarget, []); 
+    }
 
-    // Update the previous node to the current target node for the next iteration
-    prevNode = targetNode;
-    this.animateDijkstra(visitedNodesToTarget, allNodesInShortestPathOrder);
+    resetNodes(grid); 
+    const visitedNodesToFinish = dijkstra(grid, prevNode, finishNode);
+    const nodesInShortestPathToFinish = getNodesInShortestPathOrder(finishNode);
+  
+    allNodesInShortestPathOrder = allNodesInShortestPathOrder.concat(nodesInShortestPathToFinish.slice(1));
+  
+    await this.animateDijkstra(visitedNodesToFinish, allNodesInShortestPathOrder);
+  
+    this.animateShortestPath(allNodesInShortestPathOrder);
   }
-  resetNodes(grid); // Reset nodes before running Dijkstra's algorithm
-  // Find path from the last middle node to the finish node
-  const visitedNodesToFinish = dijkstra(grid, prevNode, finishNode);
-  const nodesInShortestPathToFinish = getNodesInShortestPathOrder(finishNode);
-  resetNodes(grid);
-  // Combine the final path
-  allNodesInShortestPathOrder = allNodesInShortestPathOrder.concat(nodesInShortestPathToFinish.slice(1));
 
-  // Animate the final combined path
-  this.animateDijkstra(visitedNodesToFinish, allNodesInShortestPathOrder);
+
+
+
+  // FLOYD WARSHALL ALGORITHM
+
+animateFloydWarshall(allNodesInShortestPathOrder) {
+  const delayFactor = 10; 
+
+  for (let i = 0; i < allNodesInShortestPathOrder.length; i++) {
+    const node = allNodesInShortestPathOrder[i];
+    const delay = i * delayFactor;
+
+    setTimeout(() => {
+      if (!node.isStart && !node.isFinish && !node.isWall) {
+        document.getElementById(`node-${node.row}-${node.col}`).className =
+          'node node-shortest-path';
+      }
+    }, delay);
+  }
 }
+
+
+visualizeFloydWarshall() {
+  const { grid, targetNodes } = this.state; 
+  const tempGrid = JSON.parse(JSON.stringify(grid));
+  const fwGrid = tempGrid.map(row =>
+    row.map(node => (node.isWall ? createNode(node.col, node.row) : node))
+  );
+  const { distances, nextNode } = floydWarshall(fwGrid);
+  const startNode = fwGrid[this.state.startNodeRow][this.state.startNodeCol];
+  const finishNode = fwGrid[this.state.finishNodeRow][this.state.finishNodeCol];
+  const shortestPathNodes = [];
+  let currentNode = startNode;
+
+  for (let i = 0; i < targetNodes.length; i++) {
+    const middleNodeObj = targetNodes[i];
+    const middleNode = fwGrid[middleNodeObj.row][middleNodeObj.col];
+    
+    while (currentNode !== middleNode) {
+      const nextIndex =
+        nextNode[currentNode.row * fwGrid[0].length + currentNode.col][
+          middleNode.row * fwGrid[0].length + middleNode.col
+        ];
+      const nextRow = Math.floor(nextIndex / fwGrid[0].length);
+      const nextCol = nextIndex % fwGrid[0].length;
+      const nextPathNode = fwGrid[nextRow][nextCol];
+      shortestPathNodes.push(nextPathNode);
+      currentNode = nextPathNode;
+    }
+
+    if (i < targetNodes.length - 1) {
+      const nextMiddleNodeObj = targetNodes[i + 1];
+      const nextMiddleNode = fwGrid[nextMiddleNodeObj.row][nextMiddleNodeObj.col];
+      currentNode = middleNode;
+      while (currentNode !== nextMiddleNode) {
+        const nextIndex =
+          nextNode[currentNode.row * fwGrid[0].length + currentNode.col][
+            nextMiddleNode.row * fwGrid[0].length + nextMiddleNode.col
+          ];
+        const nextRow = Math.floor(nextIndex / fwGrid[0].length);
+        const nextCol = nextIndex % fwGrid[0].length;
+        const nextPathNode = fwGrid[nextRow][nextCol];
+        shortestPathNodes.push(nextPathNode);
+        currentNode = nextPathNode;
+      }
+    }
+  }
+
+  while (currentNode !== finishNode) {
+    const nextIndex =
+      nextNode[currentNode.row * fwGrid[0].length + currentNode.col][
+        finishNode.row * fwGrid[0].length + finishNode.col
+      ];
+    const nextRow = Math.floor(nextIndex / fwGrid[0].length);
+    const nextCol = nextIndex % fwGrid[0].length;
+    const nextPathNode = fwGrid[nextRow][nextCol];
+    shortestPathNodes.push(nextPathNode);
+    currentNode = nextPathNode;
+  }
+  this.animateFloydWarshall(shortestPathNodes);
+}
+
+
+
+  // ASTAR ALGORITHM
+
+  async visualizeAstar() {
+    const { grid, startNodeRow, startNodeCol, finishNodeRow, finishNodeCol, targetNodes } = this.state;
+    const startNode = grid[startNodeRow][startNodeCol];
+    const finishNode = grid[finishNodeRow][finishNodeCol];
+    let allNodesInShortestPathOrder = [];
+    let prevNode = startNode;
+  
+    for (const targetNodeObj of targetNodes) {
+      const targetNode = grid[targetNodeObj.row][targetNodeObj.col];
+      resetNodes(grid); 
+      const { visitedNodes, shortestPath } = astar(grid, prevNode, targetNode);
+      allNodesInShortestPathOrder = allNodesInShortestPathOrder.concat(shortestPath.slice(1));
+      resetNodes(grid);
+      await this.animateDijkstra(visitedNodes, shortestPath);
+      prevNode = targetNode;
+    }
+  
+    const { visitedNodes, shortestPath } = astar(grid, prevNode, finishNode);
+    allNodesInShortestPathOrder = allNodesInShortestPathOrder.concat(shortestPath.slice(1));
+    resetNodes(grid);
+    await this.animateDijkstra(visitedNodes, allNodesInShortestPathOrder);
+    this.animateShortestPath(allNodesInShortestPathOrder);
+  }
+
+
+
+
+  // BFS ALGORITHM
+  
+  async visualizeBFS() {
+    const { grid, startNodeRow, startNodeCol, finishNodeRow, finishNodeCol, targetNodes } = this.state;
+    const startNode = grid[startNodeRow][startNodeCol];
+    const finishNode = grid[finishNodeRow][finishNodeCol];
+  
+    let allNodesInShortestPathOrder = [];
+  
+    let prevNode = startNode;
+    
+    for (const targetNodeObj of targetNodes) {
+      const targetNode = grid[targetNodeObj.row][targetNodeObj.col];
+      resetNodes(grid);
+      const visitedNodesToTarget = bfs(grid, prevNode, targetNode);
+      const nodesInShortestPathToTarget = getNodesInShortestPathOrder(targetNode);
+      allNodesInShortestPathOrder = allNodesInShortestPathOrder.concat(nodesInShortestPathToTarget.slice(1));
+      prevNode = targetNode;
+      await this.animateDijkstra(visitedNodesToTarget); 
+    }
+
+    resetNodes(grid);
+    const visitedNodesToFinish = bfs(grid, prevNode, finishNode);
+    const nodesInShortestPathToFinish = getNodesInShortestPathOrder(finishNode);
+    allNodesInShortestPathOrder = allNodesInShortestPathOrder.concat(nodesInShortestPathToFinish.slice(1));
+    await this.animateDijkstra(visitedNodesToFinish); 
+    this.animateShortestPath(allNodesInShortestPathOrder); 
+  }
+
+
+
+  // DFS ALGORITHM
+
+  async visualizeDFS() {
+    const { grid, startNodeRow, startNodeCol, finishNodeRow, finishNodeCol, targetNodes } = this.state;
+    const startNode = grid[startNodeRow][startNodeCol];
+    const finishNode = grid[finishNodeRow][finishNodeCol];
+    let allNodesInOrder = [];
+    let prevNode = startNode;
+  
+    for (const targetNodeObj of targetNodes) {
+      const targetNode = grid[targetNodeObj.row][targetNodeObj.col];
+      resetNodes(grid); 
+      const visitedNodesToTarget = dfs(grid, prevNode, targetNode);
+      allNodesInOrder = allNodesInOrder.concat(visitedNodesToTarget.slice(1));
+      prevNode = targetNode;
+      await this.animateDijkstra(visitedNodesToTarget);
+    }
+  
+    resetNodes(grid);  
+    const visitedNodesToFinish = dfs(grid, prevNode, finishNode);
+    allNodesInOrder = allNodesInOrder.concat(visitedNodesToFinish.slice(1));
+    await this.animateDijkstra(visitedNodesToFinish); 
+    this.animateShortestPath(allNodesInOrder);
+  }
+  
+
+
+
+
+  // MAZE KRUSKAL ALGORITHM
+
+  generateKruskalMaze() {
+    const { grid } = this.state;
+    const startNode = { x: this.state.startNodeRow, y: this.state.startNodeCol };
+    const endNode = { x: this.state.finishNodeRow, y: this.state.finishNodeCol };
+
+  
+    // Initialize all cells as walls
+    for (let row of grid) {
+      for (let cell of row) {
+        cell.isWall = true;
+      }
+    }
+  
+    // Ensure start and end nodes aren't walls
+    
+    startNode.isWall = false;
+    endNode.isWall = false;
+  
+    const generateMaze = (grid) => {
+      let walls = [];
+      const rows = grid.length;
+      const cols = grid[0].length;
+  
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          if (col < cols - 1 && !(grid[row][col] === startNode || grid[row][col] === endNode)) {
+            walls.push({ x: row, y: col, direction: 'E' });
+          }
+          if (row < rows - 1 && !(grid[row][col] === startNode || grid[row][col] === endNode)) {
+            walls.push({ x: row, y: col, direction: 'S' });
+          }
+        }
+      }
+  
+      walls = shuffleArray(walls);
+  
+      const unionFind = new UnionFind(rows * cols);
+  
+      for (let wall of walls) {
+        let index1, index2;
+  
+        if (wall.direction === 'E') {
+          index1 = wall.x * cols + wall.y;
+          index2 = wall.x * cols + wall.y + 1;
+        } else {
+          index1 = wall.x * cols + wall.y;
+          index2 = (wall.x + 1) * cols + wall.y;
+        }
+  
+        if (unionFind.union(index1, index2)) {
+          if (wall.direction === 'E') {
+            grid[wall.x][wall.y + 1].isWall = false;
+          } else {
+            grid[wall.x + 1][wall.y].isWall = false;
+          }
+        }
+      }
+    }
+    const addRandomWalls = (grid, numWallsToAdd) => {
+      for (let i = 0; i < numWallsToAdd; i++) {
+        let randomRow, randomCol;
+        do {
+          randomRow = Math.floor(Math.random() * grid.length);
+          randomCol = Math.floor(Math.random() * grid[0].length);
+        } while (
+          grid[randomRow][randomCol].isMiddle || 
+          grid[randomRow][randomCol].isStart ||  
+          grid[randomRow][randomCol].isFinish ||
+          grid[randomRow][randomCol].isWall  // Prevent overwriting existing walls
+        );
+        grid[randomRow][randomCol].isWall = true;
+      }
+    }
+
+    const bfsHasPath = (grid, startNode, endNode) => {
+      const rows = grid.length;
+      const cols = grid[0].length;
+    
+      const isValid = (x, y) => x >= 0 && x < rows && y >= 0 && y < cols && !grid[x][y].isWall;
+    
+      const queue = [{ x: startNode.x, y: startNode.y }];
+      const visited = Array(rows).fill(null).map(() => Array(cols).fill(false));
+      visited[startNode.x][startNode.y] = true;
+    
+      const directions = [
+        [-1, 0],  // Up
+        [1, 0],   // Down
+        [0, -1],  // Left
+        [0, 1]    // Right
+      ];
+    
+      while (queue.length) {
+        const node = queue.shift();
+        if (node.x === endNode.x && node.y === endNode.y) return true;
+    
+        for (let dir of directions) {
+          const newX = node.x + dir[0];
+          const newY = node.y + dir[1];
+    
+          if (isValid(newX, newY) && !visited[newX][newY]) {
+            visited[newX][newY] = true;
+            queue.push({ x: newX, y: newY });
+          }
+        }
+      }
+    
+      return false;
+    }
+  
+    const shuffleArray = (array) => {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+  
+    do {
+      generateMaze(grid);
+      addRandomWalls(grid, 400);
+    } while (!bfsHasPath(grid, startNode, endNode));
+    
+    this.setState({ grid });
+  }
+  
+  
+
+  // MAZE PRIM ALGORITHM
+
+  generatePrimMaze() {
+    const { grid } = this.state;
+
+    const rows = grid.length;
+    const cols = grid[0].length;
+    const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]]; // Right, Down, Left, Up
+
+    const isValid = (x, y) => x >= 0 && x < rows && y >= 0 && y < cols;
+
+    // Initially, all nodes are walls
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            grid[r][c].isWall = true;
+        }
+    }
+
+    // Choose an arbitrary starting node
+    let startRow = Math.floor(Math.random() * rows);
+    let startCol = Math.floor(Math.random() * cols);
+    grid[startRow][startCol].isWall = false;
+
+    let wallList = [];
+
+    // Add the walls of the starting node to the list
+    for (let [dx, dy] of directions) {
+        if (isValid(startRow + dx, startCol + dy)) {
+            wallList.push({ x: startRow + dx, y: startCol + dy });
+        }
+    }
+
+    while (wallList.length) {
+        let wallIndex = Math.floor(Math.random() * wallList.length);
+        let wall = wallList[wallIndex];
+
+        let oppositeNode = null;
+        for (let [dx, dy] of directions) {
+            let nx = wall.x + dx;
+            let ny = wall.y + dy;
+            if (isValid(nx, ny) && !grid[nx][ny].isWall) {
+                if (oppositeNode) {
+                    oppositeNode = null;
+                    break;
+                }
+                oppositeNode = { x: nx, y: ny };
+            }
+        }
+
+        if (oppositeNode) {
+            grid[wall.x][wall.y].isWall = false;
+            for (let [dx, dy] of directions) {
+                let nx = wall.x + dx;
+                let ny = wall.y + dy;
+                if (isValid(nx, ny) && grid[nx][ny].isWall) {
+                    wallList.push({ x: nx, y: ny });
+                }
+            }
+        }
+
+        wallList.splice(wallIndex, 1);
+    }
+
+    this.setState({ grid });
+  }
+
 
   clearBoard() {
     window.location.reload();
   }
 
   addMiddleNode(row, col) {
-
-    // Set the middleNodeRow and middleNodeCol when the "Add Middle Target" button is clicked
     this.setState({
       middleNodeRow: row,
       middleNodeCol: col,
@@ -327,59 +649,112 @@ export default class PathfindingVisualizer extends Component {
 
   addPresetWall() {
     const { grid } = this.state;
-    const newGrid = grid.slice(); // Create a copy of the grid
-  
-    // Define the number of walls you want to add
+    const newGrid = grid.slice(); 
     const numWallsToAdd = 100;
   
     for (let i = 0; i < numWallsToAdd; i++) {
-      // Generate random row and column indices
-      const randomRow = Math.floor(Math.random() * newGrid.length);
-      const randomCol = Math.floor(Math.random() * newGrid[0].length);
-  
-      // Toggle the wall state of the random node
+      let randomRow, randomCol;
+      
+      do {
+        randomRow = Math.floor(Math.random() * newGrid.length);
+        randomCol = Math.floor(Math.random() * newGrid[0].length);
+      } while (
+        newGrid[randomRow][randomCol].isMiddle || 
+        newGrid[randomRow][randomCol].isStart ||  
+        newGrid[randomRow][randomCol].isFinish    
+      );
       newGrid[randomRow][randomCol].isWall = true;
     }
   
-    // Update the state with the new grid
     this.setState({ grid: newGrid });
   }
   
-  
-
-
-  /*Responsible for rendering the JSX that represents the component's UI.*/
   render() {
-
-    /*Uses destructuring assignment to extract the grid and mouseIsPressed properties from the component's state object.*/
     const {grid, mouseIsPressed} = this.state;
 
-    // Create grid and Button to start Dijkstra Algorithm 
-    /* It represents the component's UI.
-       It consists of a button that triggers the visualization of Dijkstra's algorithm and a div element with the grid class that contains the nodes.*/
     return (
       <>
+        <div class="container">
+          <div className="button-container">
+            <button onClick={() => this.visualizeDijkstra()} class="visualization-button">
+              Visualize Dijkstra's Algorithm
+            </button>
+            <div class="description">Find the shortest path using Dijkstra's algorithm, which considers the shortest cumulative distance from the start point to every other point on the grid.</div>
+          </div>
 
-        {/* This is a button element with an onClick event handler that calls the visualizeDijkstra method when clicked.*/}
-        <button onClick={() => this.visualizeDijkstra()}>
-          Visualize Dijkstra's Algorithm
-        </button>
-        <button onClick={() => this.addMiddleNode()}>
-          Add Middle Target
-        </button>
-        <button onClick={() => this.addPresetWall()}>
-          Add a Wall Preset
-        </button>
-        <button onClick={() => this.clearBoard()}>
-          Clear Board
-        </button>
+          <div className="button-container">
+            <button onClick={() => this.visualizeFloydWarshall()} class="visualization-button">
+              Visualize Floyd Warshall's Algorithm
+            </button>
+            <div class="description">Visualize the Floyd-Warshall algorithm, which finds the shortest paths between all pairs of nodes on the grid, suitable for dense graphs.</div>
+          </div>
+
+          <div className="button-container">
+            <button onClick={() => this.visualizeAstar()} class="visualization-button">
+              Visualize Astar's Algorithm
+            </button>
+            <div class="description">Use the A* algorithm to find the shortest path with an efficient heuristic, ideal for navigating complex grids with varying terrain costs.</div>
+          </div>
+
+          <div className="button-container">
+            <button onClick={() => this.visualizeBFS()} class="visualization-button">
+              Visualize BFS's Algorithm
+            </button>
+            <div class="description">Execute the Breadth-First Search algorithm to explore the grid level by level, suitable for finding the shortest path on unweighted graphs.</div>
+          </div>
+
+          <div className="button-container">
+            <button onClick={() => this.visualizeDFS()} class="visualization-button">
+              Visualize DFS's Algorithm
+            </button>
+            <div class="description">Execute the Breadth-First Search algorithm to explore the grid level by level, suitable for finding the shortest path on unweighted graphs.</div>
+          </div>
+
+          <div class="separator"></div>
+
+          <div className="button-container">
+            <button onClick={() => this.addPresetWall()} class="functionality-button">
+              Add a random Wall Preset
+            </button>
+            <div class="description">Quickly add a preset wall pattern to the grid, simulating obstacles or barriers in your pathfinding scenarios.</div>
+          </div>
+
+          <div className="button-container">
+            <button onClick={() => this.generateKruskalMaze()} class="functionality-button">
+              Generate a Maze using Kruskal's Algorithm
+            </button>
+            <div class="description">Quickly add a preset wall pattern to the grid, simulating obstacles or barriers in your pathfinding scenarios.</div>
+          </div>
+
+          <div className="button-container">
+            <button onClick={() => this.generatePrimMaze()} class="functionality-button">
+              Generate a Maze using Prim's Algorithm
+            </button>
+            <div class="description">Quickly add a preset wall pattern to the grid, simulating obstacles or barriers in your pathfinding scenarios.</div>
+          </div>
+
+          <div class="separator"></div>
+
+          <div className="middle-container">
+            <div className="button-container">
+              <button onClick={() => this.addMiddleNode()} class="functionality-button">
+                Add a Middle Target
+              </button>
+              <div class="description">Insert a middle target node to the grid, allowing you to visualize pathfinding algorithms with specific intermediate destinations.</div>
+            </div>
+          </div>
+
+          <div className="clear-container">
+            <div className="button-container">
+              <button onClick={() => this.clearBoard()} class="functionality-button">
+                Clear Board
+              </button>
+              <div class="description">Clear the grid, removing all nodes and obstacles, to start a new pathfinding visualization from scratch.</div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid">
-          
-
-          {/* This line maps over the grid array to render the rows of nodes. 
-          For each row, a div element is rendered with the key set to rowIdx. 
-          Within each row, another map function is used to render the individual nodes.
-          The Node component is used to render each node, passing the necessary props such as col, isFinish, isStart, isWall, mouseIsPressed, and event handlers (onMouseDown, onMouseEnter, onMouseUp).*/}
           {grid.map((row, rowIdx) => {
             return (
               <div key={rowIdx}>
@@ -411,8 +786,6 @@ export default class PathfindingVisualizer extends Component {
   }
 }
 
-/*This is a helper function that returns the initial grid.
- It creates a 2D array representing the grid and populates it with nodes created by the createNode function.*/
 const getInitialGrid = () => {
   const grid = [];
   for (let row = 0; row < 20; row++) {
@@ -425,7 +798,6 @@ const getInitialGrid = () => {
   return grid;
 };
 
-/*This is a helper function that creates a node object.*/
 const createNode = (col, row) => {
   return {
     col,
@@ -440,9 +812,6 @@ const createNode = (col, row) => {
   };
 };
 
-/*This is a helper function that takes the current grid, row, and col as parameters.
-It creates a new grid by making a shallow copy of the current grid.
- It toggles the wall state of the node at the specified row and col in the new grid and returns the updated grid.*/
 const getNewGridWithWallToggled = (grid, row, col) => {
   const newGrid = grid.slice();
   const node = newGrid[row][col];
@@ -463,4 +832,43 @@ function resetNodes(grid) {
     }
   }
 }
+
+
+class UnionFind {
+  constructor(size) {
+    this.parent = new Array(size).fill(0).map((_, index) => index);
+    this.rank = new Array(size).fill(0);
+  }
+
+  find(x) {
+    if (this.parent[x] !== x) {
+      this.parent[x] = this.find(this.parent[x]);
+    }
+    return this.parent[x];
+  }
+
+  union(x, y) {
+    let rootX = this.find(x);
+    let rootY = this.find(y);
+
+    if (rootX === rootY) return false;
+
+    if (this.rank[rootX] < this.rank[rootY]) {
+      this.parent[rootX] = rootY;
+    } else if (this.rank[rootX] > this.rank[rootY]) {
+      this.parent[rootY] = rootX;
+    } else {
+      this.parent[rootY] = rootX;
+      this.rank[rootX]++;
+    }
+
+    return true;
+  }
+}
+
+
+
+
+
+
 

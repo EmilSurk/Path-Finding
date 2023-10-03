@@ -1,9 +1,12 @@
 .node {
-  width: 25px;
-  height: 25px;
-  outline: 1px solid rgb(175, 216, 248);
+  width: 30px; 
+  height: 30px; 
   display: inline-block;
+  outline: 0.5px solid rgb(131, 128, 128); 
+  background-color: rgba(255, 255, 255, 0.9); 
+  position: relative;
 }
+
 
 .node-finish {
   background-color: red;
@@ -14,41 +17,30 @@
 }
 
 .node-middle {
-  position: relative;
   background-color: orange;
+  position: relative;
 }
 
-
 .node-visited {
-  animation-name: visitedAnimation;
-  animation-duration: 1.5s;
-  animation-timing-function: ease-out;
-  animation-delay: 0;
-  animation-direction: alternate;
-  animation-iteration-count: 1;
-  animation-fill-mode: forwards;
-  animation-play-state: running;
+  animation: visitedAnimation 1.5s ease-out alternate 1 running forwards;
 }
 
 @keyframes visitedAnimation {
   0% {
     transform: scale(0.3);
-    background-color: rgba(0, 0, 66, 0.75);
+    background-color: rgba(66, 0, 66, 0.75);
     border-radius: 100%;
   }
-
   50% {
-    background-color: rgba(17, 104, 217, 0.75);
+    background-color: rgba(120, 17, 217, 0.75);
   }
-
   75% {
     transform: scale(1.2);
-    background-color: rgba(0, 217, 159, 0.75);
+    background-color: rgba(130, 0, 217, 0.75);
   }
-
   100% {
     transform: scale(1);
-    background-color: rgba(0, 190, 218, 0.75);
+    background-color: rgba(170, 0, 218, 0.75);
   }
 }
 
@@ -57,14 +49,22 @@
 }
 
 .node-shortest-path {
-  animation-name: shortestPath;
-  animation-duration: 1.5s;
-  animation-timing-function: ease-out;
-  animation-delay: 0;
-  animation-direction: alternate;
-  animation-iteration-count: 1;
-  animation-fill-mode: forwards;
-  animation-play-state: running;
+  animation: shortestPath 1.5s ease-out alternate 1 running forwards;
+}
+
+@keyframes shortestPath {
+  0% {
+    transform: scale(0.6);
+    background-color: rgb(0, 128, 255); 
+  }
+  50% {
+    transform: scale(1.2);
+    background-color: rgb(0, 128, 255); 
+  }
+  100% {
+    transform: scale(1);
+    background-color: rgb(0, 128, 255); 
+  }
 }
 
 .middle-number {
@@ -75,21 +75,4 @@
   font-size: 12px;
   font-weight: bold;
   color: white;
-}
-
-@keyframes shortestPath {
-  0% {
-    transform: scale(0.6);
-    background-color: rgb(255, 254, 106);
-  }
-
-  50% {
-    transform: scale(1.2);
-    background-color: rgb(255, 254, 106);
-  }
-
-  100% {
-    transform: scale(1);
-    background-color: rgb(255, 254, 106);
-  }
 }
