@@ -3,31 +3,31 @@
 /* Style for the button container */
 .button-container {
   display: flex;
-  flex-direction: column; /* Stack the items vertically */
+  flex-direction: column;
   align-items: center;
 
-  text-align: center; /* Center-align the button and description text */
+  text-align: center;
   position: relative;
 }
 
 .container {
   display: flex;
-  flex-wrap: wrap; /* Wrap buttons to the next line if they don't fit horizontally */
-  justify-content: center; /* Center the buttons horizontally */
-  align-items: center; /* Center the buttons vertically */
+  flex-wrap: wrap; 
+  justify-content: center; 
+  align-items: center; 
   padding: 20px;
-  background-color: #f3f3f3; /* Slight gray background color */
+  background-color: #f3f3f3; 
 }
 
-/* This will apply styles when the window width is less than 1000px */
+
 @media only screen and (max-width: 999px) {
   .container {
-    flex-direction: column; /* Stack buttons vertically on smaller screens */
-    align-items: center; /* Center-align buttons */
+    flex-direction: column; 
+    align-items: center; 
   }
 
   button {
-    width: 100%; /* Make buttons take full width */
+    width: 100%; 
   }
 }
 
@@ -35,27 +35,27 @@
 
 /* Style for the description */
 .description {
-  display: none; /* Initially hidden */
+  display: none; 
   position: absolute;
-  top: 80px; /* Adjust the value as needed to position the description */
-  left: 50%; /* Center the description horizontally */
+  top: 80px; 
+  left: 50%; 
   width: 200px;
-  transform: translateX(-50%); /* Center the description horizontally */
+  transform: translateX(-50%); 
   padding: 20px;
   background-color: rgba(0, 0, 0, 0.8);
   color: white;
   text-align: center;
   font-size: 15px;
-  border-radius: 10px; /* Rounded corners to create a bubble shape */
+  border-radius: 10px; 
 }
 
 /* Create a triangular shape to resemble a speech bubble */
 .description::before {
   content: "";
   position: absolute;
-  top: -20px; /* Adjust the value to position the triangle above the bubble */
+  top: -20px; 
   left: 50%;
-  border-width: 10px; /* Adjust the size of the triangle */
+  border-width: 10px; 
   border-style: solid;
   border-color: transparent transparent rgba(0, 0, 0, 0.8) transparent;
   transform: translateX(-50%);
@@ -67,59 +67,59 @@
 }
 
 button {
-  width: 180px; /* Set a fixed width for all buttons */
-  height: 70px; /* Set a fixed height for all buttons */
+  width: 180px; 
+  height: 70px; 
   margin: 5px;
   padding: 10px 20px;
   background-color: #3870ac;
   color: white;
   border: none;
   cursor: pointer;
-  transition: background-color 0.3s ease; /* Add a smooth transition */
+  transition: background-color 0.3s ease; 
 
   /* Text styles */
-  font-size: 13px; /* Set the font size */
-  font-weight: bold; /* Set the font weight (e.g., bold) */
-  text-transform: uppercase; /* Convert text to uppercase */
+  font-size: 13px;
+  font-weight: bold; 
+  text-transform: uppercase; 
 }
 
 /* Hover effect for the buttons */
 button:hover {
-  background-color: #295c96; /* Slight gray background color */
+  background-color: #295c96; 
 }
 
 /* Style for the separator */
 .separator {
-  width: 5px; /* Adjust the width of the separator line */
-  height: 50px; /* Set the height to match the buttons */
-  margin: 0 10px; /* Adjust the horizontal margin as needed */
-  display: inline-block; /* Display the separator as an inline-block element */
-  vertical-align: middle; /* Vertically center the separator */
+  width: 5px; 
+  height: 50px; 
+  margin: 0 10px; 
+  display: inline-block; 
+  vertical-align: middle; 
   margin-left: 30px;
   margin-right: 30px;
-  border-left: 3px dashed rgb(120, 116, 116); /* Use border to create a dashed line */
+  border-left: 3px dashed rgb(120, 116, 116); 
 }
 
 .grid {
   display: grid;
   grid-gap: 1px;
   margin-top: 150px;
-  justify-content: center; /* Center the grid horizontally */
-  transform: scale(1); /* Adjust the scale factor as needed */
+  justify-content: center; 
+  transform: scale(1);
 }
 
 
 /* Style for grid cells */
 .grid > div {
-  overflow: hidden; /* Hide overflowing content */
-  white-space: nowrap; /* Prevent text from wrapping */
-  text-overflow: ellipsis; /* Show ellipsis (...) for overflowed text */
+  overflow: hidden;
+  white-space: nowrap; 
+  text-overflow: ellipsis;
 }
 
 /* Style for the visualization buttons */
 .visualization-button {
   
-  background-color: #518491; /* Set a different color for visualization buttons */
+  background-color: #518491;
 }
 
 .visualization-button:hover {
@@ -137,12 +137,12 @@ button:hover {
 
 /* Retro Style Title */
 .retro-title {
-  text-align: center; /* Center the title */
-  font-size: 2.5em; /* Large font size */
-  color: #fc3; /* Retro color, change as needed */
-  text-shadow: 3px 3px 0 #ed2939, /* Red shadow */
-               6px 6px 0 #f9a602, /* Orange shadow */
-               9px 9px 0 #ffcd00; /* Yellow shadow */
-  font-family: 'Press Start 2P', cursive; /* Retro font, ensure it's loaded in your HTML */
-  margin-top: 20px; /* Space at the top */
+  text-align: center; 
+  font-size: 2.5em; 
+  color: #fc3; 
+  text-shadow: 3px 3px 0 #ed2939,
+               6px 6px 0 #f9a602, 
+               9px 9px 0 #ffcd00; 
+  font-family: 'Press Start 2P', cursive;
+  margin-top: 20px; 
 }
