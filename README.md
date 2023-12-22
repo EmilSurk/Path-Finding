@@ -1,5 +1,7 @@
 # PathFinder Visualizer
 
+<img src="path-finder-image.png" alt="PathFinder Visualization" width="400px" />
+
 PathFinder Visualizer is an interactive web tool designed to visualize various pathfinding algorithms. This application serves as an educational tool to help users understand and explore the functionality of different algorithms used in pathfinding operations within a grid.
 
 ## Features
