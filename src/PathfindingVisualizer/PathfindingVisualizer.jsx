@@ -674,6 +674,7 @@ visualizeFloydWarshall() {
 
     return (
       <>
+        <div className="retro-title">PathFinder Visualizer</div>
         <div class="container">
           <div className="button-container">
             <button onClick={() => this.visualizeDijkstra()} class="visualization-button">
@@ -707,7 +708,7 @@ visualizeFloydWarshall() {
             <button onClick={() => this.visualizeDFS()} class="visualization-button">
               Visualize DFS's Algorithm
             </button>
-            <div class="description">Execute the Breadth-First Search algorithm to explore the grid level by level, suitable for finding the shortest path on unweighted graphs.</div>
+            <div class="description">Explore the Depth-First Search algorithm to delve deeply into the grid, branching out extensively before backtracking, effective for solving puzzles and mazes on graphs.</div>
           </div>
 
           <div class="separator"></div>
@@ -865,6 +866,10 @@ class UnionFind {
     return true;
   }
 }
+
+
+
+
 
 
 

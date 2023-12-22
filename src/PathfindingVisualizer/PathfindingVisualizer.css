@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 /* Style for the button container */
 .button-container {
@@ -16,13 +17,13 @@
   align-items: center; /* Center the buttons vertically */
   padding: 20px;
   background-color: #f3f3f3; /* Slight gray background color */
-
 }
 
 /* This will apply styles when the window width is less than 1000px */
 @media only screen and (max-width: 999px) {
   .container {
-    flex-direction: row; /* Stack content vertically */
+    flex-direction: column; /* Stack buttons vertically on smaller screens */
+    align-items: center; /* Center-align buttons */
   }
 
   button {
@@ -67,7 +68,7 @@
 
 button {
   width: 180px; /* Set a fixed width for all buttons */
-  height: 62px; /* Set a fixed height for all buttons */
+  height: 70px; /* Set a fixed height for all buttons */
   margin: 5px;
   padding: 10px 20px;
   background-color: #3870ac;
@@ -132,4 +133,16 @@ button:hover {
 .middle-container {
   background-color: orange;
   margin-right: 10px;
+}
+
+/* Retro Style Title */
+.retro-title {
+  text-align: center; /* Center the title */
+  font-size: 2.5em; /* Large font size */
+  color: #fc3; /* Retro color, change as needed */
+  text-shadow: 3px 3px 0 #ed2939, /* Red shadow */
+               6px 6px 0 #f9a602, /* Orange shadow */
+               9px 9px 0 #ffcd00; /* Yellow shadow */
+  font-family: 'Press Start 2P', cursive; /* Retro font, ensure it's loaded in your HTML */
+  margin-top: 20px; /* Space at the top */
 }
